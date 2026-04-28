@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazuDevStore - Home</title>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .carousel-slide { transition: opacity 1s ease-in-out; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+        @media (max-width: 640px) {
+            .banner-container { 
+                height: 220px !important;
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+                margin-bottom: -20px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md border-b dark:border-gray-700 h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex justify-between items-center h-full">
+                <div class="flex items-center cursor-pointer group" onclick="navigate('home')">
+                    <div class="bg-blue-600 p-1.5 rounded-lg mr-2 transition-transform group-hover:scale-110">
+                        <i data-lucide="shopping-bag" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight">KazuDev Store</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i data-lucide="moon" id="theme-icon" class="h-5 w-5"></i>
+                    </button>
+                    <button onclick="goToCart()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+                        <span id="cart-badge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center hidden ring-2 ring-white dark:ring-gray-800">0</span>
+                    </button>
+                    <div id="auth-section" class="flex items-center ml-1 border-l dark:border-gray-700 pl-3"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow pt-16">
+        <div id="view-home" class="view-section active animate-fade-in pb-16">
+            
+            <div class="banner-container relative w-full h-[220px] sm:h-[450px] lg:h-[550px] bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+                <div id="carousel-inner" class="relative h-full w-full"></div>
+                
+                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white z-20 transition-all opacity-0 group-hover:opacity-100">
+                    <i data-lucide="chevron-left" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                </button>
+                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white z-20 transition-all opacity-0 group-hover:opacity-100">
+                    <i data-lucide="chevron-right" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                </button>
+                
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20" id="carousel-dots"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Katalog Produk</h2>
+                    
+                    <div class="relative w-full sm:w-72 lg:w-96">
+                        <input type="text" id="search-input" placeholder="Cari produk..." onkeyup="searchProducts()" class="w-full pl-10 pr-4 py-2 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                    </div>
+
+                    <div class="bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full border border-blue-100 dark:border-blue-800 whitespace-nowrap">
+                        <span class="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400" id="product-count">Loading...</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8" id="products-grid"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+                <div class="relative bg-[#2d46b9] dark:bg-blue-900 rounded-[2rem] overflow-hidden shadow-2xl p-8 sm:p-14 text-center border dark:border-gray-700">
+                    
+                    <div class="absolute -right-10 -top-10 text-white/10 dark:text-white/5 pointer-events-none transform rotate-12">
+                        <i data-lucide="code-2" class="w-64 h-64"></i>
+                    </div>
+                    <div class="absolute -left-10 -bottom-10 text-white/10 dark:text-white/5 pointer-events-none transform -rotate-12">
+                        <i data-lucide="monitor" class="w-48 h-48"></i>
+                    </div>
+
+                    <div class="relative z-10">
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Butuh Website Custom?</h2>
+                        <p class="text-blue-100 dark:text-blue-200 text-sm sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+                            Kami juga melayani pembuatan website dari nol sesuai dengan keinginan dan kebutuhan spesifik bisnis Anda. Konsultasi sekarang, gratis!
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                            <button onclick="window.open('https://wa.me/6285163725110', '_blank')" class="w-full sm:w-auto px-8 py-3.5 bg-white text-[#2d46b9] hover:bg-gray-50 rounded-xl font-bold text-base flex items-center justify-center transition-all shadow-xl hover:shadow-2xl active:scale-95">
+                                <i data-lucide="message-circle" class="h-5 w-5 mr-2"></i> Chat WhatsApp
+                            </button>
+                            <button onclick="window.location.href='mailto:nouvaprasetyaa@gmail.com'" class="w-full sm:w-auto px-8 py-3.5 bg-transparent border-2 border-blue-300 text-white hover:bg-blue-800 rounded-xl font-bold text-base flex items-center justify-center transition-all active:scale-95">
+                                <i data-lucide="mail" class="h-5 w-5 mr-2"></i> Kirim Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="view-detail" class="view-section max-w-6xl mx-auto px-4 py-12">
+            <button onclick="navigate('home')" class="mb-8 flex items-center text-gray-500 hover:text-blue-600 font-bold transition">
+                <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i> Kembali
+            </button>
+            <div id="product-detail-content"></div>
+        </div>
+    </main>
+
+    <footer class="py-10 text-center text-gray-500 border-t dark:border-gray-700 mt-10">
+        <p class="text-xs sm:text-sm font-medium uppercase tracking-widest">&copy; 2026 Kazu Store</p>
+    </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentSlide = 0;
+        let allProducts = [];
+
+        const carouselData = [
+            { pc: './dist/img/banner.png', mobile: './dist/img/banner.png', title: 'Technology Service' },
+            { pc: './dist/img/banner2.png', mobile: './dist/img/banner2.png', title: 'High Quality Products' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initCarousel();
+            fetchProducts();
+            updateCartBadge();
+            updateThemeIcon();
+            checkUserSession();
+            setInterval(nextSlide, 5000);
+            window.addEventListener('resize', initCarousel);
+        });
+
+        // --- CAROUSEL LOGIC ---
+        function initCarousel() {
+            const container = document.getElementById('carousel-inner');
+            const dotsContainer = document.getElementById('carousel-dots');
+            const isMobile = window.innerWidth < 640;
+            if(!container) return;
+            
+            container.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            carouselData.forEach((item, index) => {
+                const imgSource = isMobile ? item.mobile : item.pc;
+                const slide = document.createElement('div');
+                slide.className = `carousel-slide absolute inset-0 w-full h-full flex items-center justify-center transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`;
+                slide.innerHTML = `<img src="${imgSource}" class="w-full h-full object-cover object-center"><div class="absolute inset-0 bg-black/10"></div>`;
+                container.appendChild(slide);
+
+                const dot = document.createElement('button');
+                dot.className = `h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? 'bg-white w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
+                dot.onclick = () => showSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const dots = document.querySelectorAll('#carousel-dots button');
+            if (slides.length === 0) return;
+            currentSlide = (index + slides.length) % slides.length;
+            slides.forEach((s, i) => s.style.opacity = (i === currentSlide) ? '1' : '0');
+            dots.forEach((d, i) => {
+                d.className = `h-1.5 rounded-full transition-all duration-500 ${i === currentSlide ? 'bg-white w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
+            });
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { showSlide(currentSlide - 1); }
+
+        // --- PRODUCT & SEARCH LOGIC ---
+        async function fetchProducts() {
+            try {
+                const { data, error } = await supabaseClient.from('products').select('*');
+                if (data) {
+                    allProducts = data;
+                    renderProducts(allProducts); // Pisahkan logika render agar bisa dipakai search
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderProducts(productsToRender) {
+            const grid = document.getElementById('products-grid');
+            document.getElementById('product-count').innerText = `${productsToRender.length} Produk`;
+            
+            if (productsToRender.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">Produk tidak ditemukan.</div>`;
+                return;
+            }
+
+            grid.innerHTML = productsToRender.map(p => {
+                const displayImage = p.catalog_image_url ? p.catalog_image_url : p.image_url;
+                return `
+                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border dark:border-gray-700 cursor-pointer hover:shadow-md transition group flex flex-col" onclick="viewDetail('${p.id}')">
+                    <div class="overflow-hidden aspect-square">
+                        <img src="${displayImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 bg-gray-100 dark:bg-gray-700">
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="font-bold text-sm truncate uppercase tracking-tighter dark:text-white">${p.name}</h3>
+                        <p class="text-blue-600 font-black mt-1 mb-3">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+                        
+                        <div class="mt-auto">
+                            <button class="w-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold py-2 rounded-xl text-sm group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center gap-2">
+                                <i data-lucide="eye" class="h-4 w-4"></i> Lihat Produk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function searchProducts() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filteredProducts = allProducts.filter(p => p.name.toLowerCase().includes(query));
+            renderProducts(filteredProducts);
+        }
+
+        function viewDetail(id) {
+            const p = allProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+
+            document.getElementById('product-detail-content').innerHTML = `
+                <div class="grid md:grid-cols-2 gap-10">
+                    <img src="${p.image_url}" class="rounded-3xl w-full shadow-2xl border dark:border-gray-700">
+                    <div class="flex flex-col justify-center">
+                        <h1 class="text-4xl font-black mb-2 uppercase tracking-tighter dark:text-white">${p.name}</h1>
+                        <p class="text-2xl text-blue-600 font-black mb-4">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+                        <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">${p.description || 'Tidak ada deskripsi produk.'}</p>
+                        <button onclick="addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                            <i data-lucide="shopping-cart" class="h-5 w-5"></i> Tambah ke Keranjang
+                        </button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            navigate('detail');
+        }
+
+        // --- AUTH & CART SYSTEM ---
+        async function checkIsLoggedIn() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            return !!user;
+        }
+
+        async function goToCart() {
+            const isLoggedIn = await checkIsLoggedIn();
+            if (isLoggedIn) {
+                // Asumsi laman keranjang kamu menggunakan route "keranjang"
+                window.location.href = 'keranjang'; 
+            } else {
+                alert('Silakan login terlebih dahulu untuk membuka keranjang.');
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function addToCart(id) {
+            const isLoggedIn = await checkIsLoggedIn();
+            if (!isLoggedIn) {
+                alert('Silakan login terlebih dahulu untuk menambahkan barang ke keranjang.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const product = allProducts.find(p => String(p.id) === String(id));
+            if (!product) return;
+
+            let cart = JSON.parse(localStorage.getItem('ns_cart')) || [];
+            const existingIndex = cart.findIndex(item => String(item.id) === String(id));
+
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += 1;
+            } else {
+                const thumbImage = product.catalog_image_url ? product.catalog_image_url : product.image_url;
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image_url: thumbImage,
+                    quantity: 1
+                });
+            }
+
+            localStorage.setItem('ns_cart', JSON.stringify(cart));
+            updateCartBadge();
+            alert(`Berhasil! ${product.name} masuk ke keranjang.`);
+        }
+
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('ns_cart')) || [];
+            const badge = document.getElementById('cart-badge');
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            
+            if(badge) {
+                badge.innerText = count;
+                badge.classList.toggle('hidden', count === 0);
+            }
+        }
+
+        // --- UTILS ---
+        function navigate(view) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('theme-icon');
+            if(icon) {
+                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                lucide.createIcons();
+            }
+        }
+
+        async function checkUserSession() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const authSection = document.getElementById('auth-section');
+            if(authSection) {
+                authSection.innerHTML = user ? 
+                    `<button onclick="window.location.href='user'" title="Ke Halaman Profil" class="w-8 h-8 bg-blue-600 hover:bg-blue-700 transition rounded-full flex items-center justify-center text-white text-xs font-bold uppercase shadow-sm cursor-pointer">${user.email[0]}</button>` :
+                    `<button onclick="window.location.href='login.html'" class="text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition">LOGIN</button>`;
+            }
+        }
+    </script>
+</body>
+</html>

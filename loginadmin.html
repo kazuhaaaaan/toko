@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - KazuDev Store</title>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // SCRIPT ANTI-FLASH & TEMA SINKRON
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 font-sans min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+
+    <div class="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-slate-700 relative">
+        
+        <button onclick="toggleDarkMode()" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition" id="theme-toggle">
+            <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i>
+        </button>
+
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mb-4 border border-blue-500/20">
+                <i data-lucide="shield-check" class="h-8 w-8 text-blue-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">Admin Access</h2>
+            <p class="text-gray-500 dark:text-slate-400 mt-2 text-sm">Masuk untuk mengelola produk toko.</p>
+        </div>
+
+        <div id="msg-box" class="hidden mb-6 p-4 rounded-lg text-sm font-medium"></div>
+
+        <form id="admin-login-form" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1.5 ml-1">Email Admin</label>
+                <div class="relative">
+                    <input type="email" id="email" required 
+                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                        placeholder="nouvaprasetyaa@gmail.com">
+                    <i data-lucide="mail" class="absolute left-3 top-3.5 h-4 w-4 text-gray-400 dark:text-slate-400"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1.5 ml-1">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" required 
+                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                        placeholder="••••••••">
+                    <i data-lucide="lock" class="absolute left-3 top-3.5 h-4 w-4 text-gray-400 dark:text-slate-400"></i>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn" 
+                class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm uppercase tracking-widest transition shadow-lg shadow-blue-500/20 flex items-center justify-center group">
+                <span id="btn-text">Verify Access</span>
+                <i data-lucide="arrow-right" id="btn-icon" class="ml-2 h-4 w-4 group-hover:translate-x-1 transition"></i>
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <a href="index" class="text-xs text-blue-600 dark:text-slate-500 hover:text-blue-800 dark:hover:text-slate-300 transition underline underline-offset-4">
+                Kembali ke Beranda Toko
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const ADMIN_EMAIL = "nouvaprasetyaa@gmail.com";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            updateThemeIcon();
+        });
+
+        const loginForm = document.getElementById('admin-login-form');
+        const msgBox = document.getElementById('msg-box');
+        const submitBtn = document.getElementById('submit-btn');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Reset UI
+            msgBox.classList.add('hidden');
+            submitBtn.disabled = true;
+            document.getElementById('btn-text').innerText = "Authenticating...";
+
+            // 1. Validasi Email di Client-side (Otoritas Admin)
+            if (email !== ADMIN_EMAIL) {
+                showMsg('Akses Ditolak: Email ini bukan otoritas Admin.', 'error');
+                resetBtn();
+                return;
+            }
+
+            // 2. Login ke Supabase
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                showMsg('Login Gagal: ' + error.message, 'error');
+                resetBtn();
+            } else {
+                showMsg('Akses diverifikasi! Mengalihkan...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'admin';
+                }, 1500);
+            }
+        });
+
+        function showMsg(text, type) {
+            msgBox.innerText = text;
+            msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            
+            if (type === 'error') {
+                msgBox.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+            } else {
+                msgBox.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+            }
+        }
+
+        function resetBtn() {
+            submitBtn.disabled = false;
+            document.getElementById('btn-text').innerText = "Verify Access";
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconEl = document.getElementById('theme-icon');
+            if (!iconEl) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

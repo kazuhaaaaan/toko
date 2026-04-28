@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - KazuDev Store</title>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // SCRIPT ANTI-FLASH: Agar tema langsung sinkron sebelum halaman dirender
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans min-h-screen transition-colors duration-300">
+
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <button onclick="window.location.href='index.html'" class="flex items-center text-blue-600 hover:text-blue-700 font-medium transition">
+                <i data-lucide="chevron-left" class="mr-1 h-5 w-5"></i> Kembali
+            </button>
+            <h1 class="text-lg font-bold">Profil Pengguna</h1>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" id="theme-toggle">
+                    <i data-lucide="moon" id="theme-icon" class="h-5 w-5"></i>
+                </button>
+                <button onclick="handleLogout()" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition">
+                    <i data-lucide="log-out" class="h-5 w-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-2xl mx-auto px-4 py-10">
+        
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border dark:border-gray-700 mb-8">
+            <div class="h-32 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+            
+            <div class="px-8 pb-8">
+                <div class="relative -mt-16 mb-6">
+                    <div id="user-avatar" class="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 bg-blue-600 flex items-center justify-center text-white text-4xl font-black shadow-lg mx-auto uppercase transition-transform hover:scale-105">
+                        ?
+                    </div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <h2 id="display-name" class="text-2xl font-bold text-gray-900 dark:text-white">Memuat nama...</h2>
+                    <p id="display-email" class="text-gray-500 dark:text-gray-400 text-sm">email@example.com</p>
+                </div>
+
+                <hr class="dark:border-gray-700 mb-8 opacity-50">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border dark:border-gray-700">
+                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                            <i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Bergabung Sejak</p>
+                            <p id="display-joined" class="font-semibold text-sm">-- -- ----</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border dark:border-gray-700 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 transition" onclick="window.location.href='keranjang'">
+                        <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                            <i data-lucide="shopping-cart" class="h-6 w-6 text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Isi Keranjang</p>
+                            <p id="cart-count" class="font-semibold text-sm">0 Item</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-extrabold mb-4 flex items-center gap-2">
+            <i data-lucide="history" class="h-5 w-5 text-blue-600"></i> Riwayat Transaksi
+        </h3>
+        <div id="history-container" class="space-y-4 mb-8">
+            <div class="text-center py-8 text-gray-500 text-sm">Memuat riwayat...</div>
+        </div>
+
+        <div class="mt-8 space-y-3">
+            <button onclick="window.location.href='index.html'" class="w-full py-4 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl font-bold flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-sm">
+                <i data-lucide="home" class="mr-2 h-5 w-5 text-blue-600"></i> Kembali ke Beranda
+            </button>
+            <button onclick="handleLogout()" class="w-full py-4 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition">
+                Keluar dari Akun
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // Konfigurasi Supabase
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadUserProfile();
+            updateCartCount();
+            updateThemeIcon();
+        });
+
+        // 1. Load Data Profil & Trigger Riwayat Transaksi
+        async function loadUserProfile() {
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+            if (error || !user) {
+                // Jika tidak login, arahkan ke login atau set tampilan tamu
+                document.getElementById('display-name').innerText = "Tamu KazuDev Store";
+                document.getElementById('display-email').innerText = "Silakan login untuk akses penuh";
+                document.getElementById('user-avatar').innerText = "G";
+                document.getElementById('history-container').innerHTML = `<div class="text-center py-8 text-gray-500 text-sm">Silakan login untuk melihat riwayat.</div>`;
+                return;
+            }
+
+            // Set Email
+            document.getElementById('display-email').innerText = user.email;
+            
+            // Set Nama
+            const name = user.user_metadata?.full_name || user.email.split('@')[0];
+            document.getElementById('display-name').innerText = name;
+            
+            // Set Avatar Inisial
+            document.getElementById('user-avatar').innerText = name.charAt(0);
+
+            // Set Tanggal Join
+            const joinedDate = new Date(user.created_at).toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('display-joined').innerText = joinedDate;
+
+            // Load Riwayat Transaksi
+            loadTransactionHistory(user.id);
+        }
+
+        // 2. Load Riwayat Transaksi dari Tabel 'transactions'
+        async function loadTransactionHistory(userId) {
+            const container = document.getElementById('history-container');
+            
+            try {
+                // Asumsi nama tabel adalah 'transactions'
+                const { data, error } = await supabaseClient
+                    .from('transactions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 text-gray-500 dark:text-gray-400 text-sm">Belum ada riwayat transaksi.</div>`;
+                    return;
+                }
+
+                container.innerHTML = data.map(trx => {
+                    const date = new Date(trx.created_at).toLocaleDateString('id-ID', { 
+                        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
+                    });
+                    
+                    // Asumsi struktur items di JSONB: [{name: 'Produk A', quantity: 1}, ...]
+                    let itemsHtml = '';
+                    if (trx.items && Array.isArray(trx.items)) {
+                        itemsHtml = trx.items.map(item => `${item.name} (x${item.quantity})`).join(', ');
+                    }
+
+                    // Warna Badge Status
+                    let statusColor = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200';
+                    let statusText = trx.status || 'Pending';
+                    
+                    if (trx.status && trx.status.toLowerCase() === 'success') {
+                        statusColor = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200';
+                    } else if (trx.status && trx.status.toLowerCase() === 'failed') {
+                        statusColor = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200';
+                    }
+
+                    return `
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border dark:border-gray-700 shadow-sm flex flex-col sm:flex-row justify-between gap-4 hover:shadow-md transition">
+                        <div>
+                            <p class="text-[11px] text-gray-400 font-medium mb-1">${date}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">${itemsHtml || 'Detail item tidak tersedia'}</p>
+                            <p class="font-black text-blue-600 dark:text-blue-400 mt-2">Rp ${Number(trx.total_amount || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                        <div class="flex sm:items-start items-center">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold border ${statusColor} uppercase tracking-widest">
+                                ${statusText}
+                            </span>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+                
+            } catch (err) {
+                console.error("Error loading history:", err);
+                container.innerHTML = `<div class="text-center py-8 text-red-500 text-sm">Gagal memuat riwayat transaksi.</div>`;
+            }
+        }
+
+        // 3. Hitung jumlah item di keranjang (LocalStorage)
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('ns_cart')) || [];
+            const total = cart.reduce((acc, item) => acc + item.quantity, 0);
+            document.getElementById('cart-count').innerText = `${total} Item`;
+        }
+
+        // 4. Fungsi Logout
+        async function handleLogout() {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                const { error } = await supabaseClient.auth.signOut();
+                if (!error) {
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Gagal logout: ' + error.message);
+                }
+            }
+        }
+
+        // 5. Dark Mode & Theme UI
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconEl = document.getElementById('theme-icon');
+            if (!iconEl) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

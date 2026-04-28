@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - KazuDev Store</title>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // SCRIPT ANTI-FLASH & TEMA SINKRON
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-fade-in border dark:border-gray-700">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 mb-4 cursor-pointer hover:rotate-12 transition-transform" onclick="window.location.href='index'">
+                <i data-lucide="shopping-bag" class="h-8 w-8 text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <h2 id="auth-title" class="text-2xl font-bold text-gray-900 dark:text-white">Selamat Datang Kembali</h2>
+            <p id="auth-subtitle" class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Silakan masuk ke akun Anda.</p>
+        </div>
+
+        <div id="msg-box" class="hidden mb-6 p-4 rounded-lg text-sm font-medium border"></div>
+
+        <form id="auth-form" class="space-y-5">
+            <div id="name-field" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nama Lengkap</label>
+                <div class="relative">
+                    <input type="text" id="full_name" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Contoh: Nouva Ardhana">
+                    <i data-lucide="user" class="absolute left-3 top-3 h-4 w-4 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+                <div class="relative">
+                    <input type="email" id="email" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="nama@email.com">
+                    <i data-lucide="mail" class="absolute left-3 top-3 h-4 w-4 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div id="password-container">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <button type="button" id="forgot-pw" onclick="handleForgotPassword()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50">Lupa Password?</button>
+                </div>
+                <div class="relative">
+                    <input type="password" id="password" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                    <i data-lucide="lock" class="absolute left-3 top-3 h-4 w-4 text-gray-400"></i>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition shadow-lg shadow-blue-500/30 flex items-center justify-center group">
+                <span id="btn-text">Masuk</span>
+                <i data-lucide="arrow-right" class="ml-2 h-5 w-5 group-hover:translate-x-1 transition"></i>
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-gray-100 dark:border-gray-700 pt-6 flex flex-col gap-3">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                <span id="toggle-text">Belum punya akun?</span>
+                <button onclick="toggleAuthMode()" id="toggle-btn" class="text-blue-600 dark:text-blue-400 font-bold hover:underline ml-1">Daftar Sekarang</button>
+            </p>
+            
+            <button onclick="toggleDarkMode()" class="text-xs flex items-center justify-center gap-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition mx-auto">
+                <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i>
+                <span id="theme-btn-text">Ganti Mode</span>
+            </button>
+        </div>
+
+        <button onclick="window.location.href='index.html'" class="w-full mt-4 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition underline">
+            Kembali ke Beranda
+        </button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let isLoginMode = true;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            updateThemeIcon();
+        });
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const nameField = document.getElementById('name-field');
+            const btnText = document.getElementById('btn-text');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const forgotPw = document.getElementById('forgot-pw');
+            const passInput = document.getElementById('password');
+
+            if (isLoginMode) {
+                title.innerText = "Selamat Datang Kembali";
+                subtitle.innerText = "Silakan masuk ke akun Anda.";
+                nameField.classList.add('hidden');
+                btnText.innerText = "Masuk";
+                toggleText.innerText = "Belum punya akun?";
+                toggleBtn.innerText = "Daftar Sekarang";
+                forgotPw.classList.remove('hidden');
+                passInput.required = true;
+            } else {
+                title.innerText = "Buat Akun Baru";
+                subtitle.innerText = "Daftar untuk mulai berbelanja di KazuDev Store.";
+                nameField.classList.remove('hidden');
+                btnText.innerText = "Daftar Akun";
+                toggleText.innerText = "Sudah punya akun?";
+                toggleBtn.innerText = "Masuk di sini";
+                forgotPw.classList.add('hidden');
+                passInput.required = true;
+            }
+        }
+
+        // LOGIKA LOGIN & DAFTAR
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('full_name').value;
+            const msgBox = document.getElementById('msg-box');
+            const submitBtn = document.getElementById('submit-btn');
+
+            msgBox.classList.add('hidden');
+            submitBtn.disabled = true;
+            document.getElementById('btn-text').innerText = "Memproses...";
+
+            try {
+                if (isLoginMode) {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    window.location.href = 'user';
+                } else {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email,
+                        password,
+                        options: { data: { full_name: fullName } }
+                    });
+                    if (error) throw error;
+                    showMsg("Daftar berhasil! Cek email untuk verifikasi.", "success");
+                    toggleAuthMode();
+                }
+            } catch (err) {
+                showMsg(err.message, "error");
+            } finally {
+                submitBtn.disabled = false;
+                document.getElementById('btn-text').innerText = isLoginMode ? "Masuk" : "Daftar Akun";
+            }
+        });
+
+        // FIX: FUNGSI RESET PASSWORD SEBENARNYA
+        async function handleForgotPassword() {
+            const email = document.getElementById('email').value;
+            const forgotBtn = document.getElementById('forgot-pw');
+
+            if (!email) {
+                showMsg("Ketik email Anda dulu di kolom input.", "error");
+                return;
+            }
+
+            try {
+                forgotBtn.disabled = true;
+                forgotBtn.innerText = "Mengirim...";
+                
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    // Redirect ke halaman khusus reset password (pastikan file ini ada)
+                    redirectTo: window.location.origin + '/reset-password',
+                });
+
+                if (error) throw error;
+
+                showMsg("Link reset password sudah dikirim ke email " + email, "success");
+            } catch (err) {
+                showMsg(err.message, "error");
+            } finally {
+                forgotBtn.disabled = false;
+                forgotBtn.innerText = "Lupa Password?";
+            }
+        }
+
+        function showMsg(text, type) {
+            const msgBox = document.getElementById('msg-box');
+            msgBox.innerText = text;
+            msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'border-red-200', 'bg-green-100', 'text-green-700', 'border-green-200');
+            
+            if (type === "error") {
+                msgBox.classList.add('bg-red-100', 'text-red-700', 'border-red-200');
+            } else {
+                msgBox.classList.add('bg-green-100', 'text-green-700', 'border-green-200');
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconEl = document.getElementById('theme-icon');
+            if (!iconEl) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

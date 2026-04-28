@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang Belanja - KazuDev Store</title>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // SCRIPT ANTI-FLASH: Langsung jalankan sebelum konten muncul
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+
+    <nav class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <button onclick="window.location.href='index.html'" class="flex items-center text-blue-600 font-bold hover:opacity-70 transition">
+                <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i> Kembali
+            </button>
+            <h1 class="text-lg font-bold">Keranjang Saya</h1>
+            
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" id="theme-toggle">
+                <i data-lucide="moon" id="theme-icon" class="h-5 w-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        
+        <div id="cart-container" class="grid md:grid-cols-3 gap-8 hidden animate-fade-in">
+            <div class="md:col-span-2 space-y-4">
+                <div id="cart-items" class="space-y-4">
+                    </div>
+            </div>
+
+            <div class="md:col-span-1">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border dark:border-gray-700 sticky top-24">
+                    <h2 class="font-bold mb-4">Ringkasan Belanja</h2>
+                    <div class="flex justify-between mb-2 text-sm opacity-70">
+                        <span>Total Harga</span>
+                        <span id="total-price">Rp 0</span>
+                    </div>
+                    <div class="border-t dark:border-gray-700 my-4 pt-4 flex justify-between font-bold text-lg">
+                        <span>Total Bayar</span>
+                        <span id="grand-total" class="text-blue-600">Rp 0</span>
+                    </div>
+                    <button onclick="openPaymentModal()" id="btn-checkout" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold mt-4 hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        Checkout Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="processing-container" class="hidden animate-fade-in max-w-lg mx-auto mt-10">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 text-center shadow-lg border dark:border-gray-700 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-blue-500 animate-pulse-slow"></div>
+                
+                <div class="w-24 h-24 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="package-search" class="h-12 w-12 text-blue-600 dark:text-blue-400 animate-bounce"></i>
+                </div>
+                
+                <h2 class="text-2xl font-black mb-2">Pesanan Sedang Diproses</h2>
+                <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                    Terima kasih! Bukti pembayaran dan pesananmu sedang dicek. Project akan segera dikerjakan dan dikirimkan ke kontak kamu.
+                </p>
+
+                <div class="space-y-3">
+                    <button onclick="finishOrder()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold flex items-center justify-center transition shadow-lg shadow-green-500/20">
+                        <i data-lucide="check-circle" class="mr-2"></i> Pesanan Telah Selesai
+                    </button>
+                    <p class="text-xs text-gray-400 mt-4">*Tekan tombol di atas jika project sudah kamu dikirim oleh admin dan sudah beres.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="payment-modal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-fade-in border dark:border-gray-700">
+            <div class="p-6 text-center">
+                <h3 class="text-xl font-bold mb-2">Pembayaran QRIS</h3>
+                <p class="text-sm text-gray-500 mb-6">Silakan scan kode QR di bawah ini.</p>
+                
+                <div class="bg-white p-4 rounded-2xl border-4 border-blue-500 inline-block mb-6">
+                    <img src="./dist/img/Qris.jpeg" onerror="this.src='https://placehold.co/250x250/blue/white?text=GAMBAR+QRIS+DISINI'" id="qris-image" class="w-48 h-48 mx-auto object-cover rounded-lg" alt="QRIS">
+                </div>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
+                    <p class="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest mb-1">Total Tagihan</p>
+                    <p id="modal-total" class="text-2xl font-black text-blue-600">Rp 0</p>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="confirmToWA()" class="w-full py-4 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center hover:bg-green-700 transition">
+                        <i data-lucide="message-circle" class="mr-2"></i> Konfirmasi via WhatsApp
+                    </button>
+                    <button onclick="closePaymentModal()" class="w-full py-3 text-gray-500 font-medium hover:text-gray-700 dark:hover:text-gray-300">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfigurasi Supabase
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let cart = [];
+        const WA_NUMBER = "6285163725110"; // Nomor tujuan Nouva
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            checkOrderStatus(); // Cek status apakah sedang proses atau tampilkan keranjang
+            updateThemeIcon();
+        });
+
+        // --- MANAJEMEN STATUS ORDER ---
+        function checkOrderStatus() {
+            const status = localStorage.getItem('ns_order_status');
+            
+            if (status === 'processing') {
+                // Sembunyikan keranjang, tampilkan UI "Sedang Diproses"
+                document.getElementById('cart-container').classList.add('hidden');
+                document.getElementById('processing-container').classList.remove('hidden');
+            } else {
+                // Tampilkan keranjang, sembunyikan UI proses
+                document.getElementById('cart-container').classList.remove('hidden');
+                document.getElementById('processing-container').classList.add('hidden');
+                loadCart();
+            }
+        }
+
+        // FUNGSI BARU: Update status transaksi ke database saat ditekan selesai
+        async function finishOrder() {
+            if(confirm('Yakin project sudah selesai dan sudah dikirim oleh admin?')) {
+                // Ambil ID transaksi yang tadi disimpan saat checkout
+                const transactionId = localStorage.getItem('ns_last_transaction_id');
+
+                if (transactionId) {
+                    // Update status transaksi di Supabase menjadi 'success'
+                    const { error } = await supabaseClient
+                        .from('transactions')
+                        .update({ status: 'success' })
+                        .eq('id', transactionId);
+
+                    if (error) {
+                        console.error("Gagal mengupdate status:", error);
+                        alert("Terjadi kesalahan saat mengupdate status di database.");
+                        return; // Jangan lanjutkan hapus keranjang jika gagal
+                    }
+                }
+
+                // Jika berhasil update DB, baru hapus status proses di memori lokal
+                localStorage.removeItem('ns_order_status');
+                localStorage.removeItem('ns_cart');
+                localStorage.removeItem('ns_last_transaction_id');
+                cart = [];
+                
+                alert('Pesanan berhasil diselesaikan! Status di riwayat telah menjadi SUCCESS.');
+                checkOrderStatus(); // Reload tampilan ke keranjang kosong
+            }
+        }
+
+        // --- MANAJEMEN KERANJANG ---
+        function loadCart() {
+            cart = JSON.parse(localStorage.getItem('ns_cart')) || [];
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            const btnCheckout = document.getElementById('btn-checkout');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-300 dark:border-gray-700 animate-fade-in">
+                        <i data-lucide="shopping-cart" class="h-16 w-16 mx-auto text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">Keranjangmu masih kosong nih.</p>
+                        <a href="index.html" class="text-blue-600 font-bold mt-2 inline-block hover:underline">Mulai Belanja</a>
+                    </div>
+                `;
+                btnCheckout.disabled = true;
+                updateTotal(0);
+                lucide.createIcons();
+                return;
+            }
+
+            btnCheckout.disabled = false;
+            container.innerHTML = cart.map((item, index) => `
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm border dark:border-gray-700 transition hover:shadow-md">
+                    <img src="${item.image_url}" class="w-20 h-20 object-cover rounded-xl bg-gray-100">
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-sm sm:text-base dark:text-white uppercase tracking-tight">${item.name}</h3>
+                        <p class="text-blue-600 font-bold text-sm">Rp ${Number(item.price).toLocaleString('id-ID')}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center border dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700">
+                            <button onclick="updateQty(${index}, -1)" class="px-3 py-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition">-</button>
+                            <span class="px-2 text-sm font-bold min-w-[24px] text-center">${item.quantity}</span>
+                            <button onclick="updateQty(${index}, 1)" class="px-3 py-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition">+</button>
+                        </div>
+                        <button onclick="removeItem(${index})" class="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition">
+                            <i data-lucide="trash-2" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            updateTotal(total);
+            lucide.createIcons();
+        }
+
+        function updateQty(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity < 1) cart[index].quantity = 1;
+            saveCart();
+        }
+
+        function removeItem(index) {
+            if(confirm('Hapus produk ini dari keranjang?')) {
+                cart.splice(index, 1);
+                saveCart();
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('ns_cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function updateTotal(amount) {
+            const formatted = `Rp ${amount.toLocaleString('id-ID')}`;
+            document.getElementById('total-price').innerText = formatted;
+            document.getElementById('grand-total').innerText = formatted;
+            document.getElementById('modal-total').innerText = formatted;
+        }
+
+        // --- FUNGSI MODAL & WA ---
+        function openPaymentModal() {
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        // FUNGSI BARU: Simpan ke DB dengan .select() lalu ke WA
+        async function confirmToWA() {
+            // 1. Cek sesi user dari Supabase
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            
+            if (!user || authError) {
+                alert("Sesi kamu telah habis atau belum login. Silakan login kembali untuk checkout.");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 2. Hitung total nilai keranjang berbentuk angka (bukan string)
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // 3. Simpan data transaksi ke tabel 'transactions' DAN kembalikan datanya dengan .select()
+            const { data: insertedData, error: insertError } = await supabaseClient
+                .from('transactions')
+                .insert([
+                    {
+                        user_id: user.id,
+                        total_amount: totalAmount,
+                        status: 'pending', // Status awal, belum selesai dikerjakan
+                        items: cart
+                    }
+                ])
+                .select(); 
+
+            if (insertError) {
+                console.error("Error dari DB:", insertError);
+                alert("Maaf, terjadi kesalahan saat menyimpan pesanan ke database.");
+                return; // Batalkan buka WA kalau gagal simpan di database
+            }
+
+            // SIMPAN ID TRANSAKSI KE LOCAL STORAGE AGAR BISA DI-UPDATE NANTI
+            if (insertedData && insertedData.length > 0) {
+                localStorage.setItem('ns_last_transaction_id', insertedData[0].id);
+            }
+
+            // 4. Lanjutkan ke WhatsApp jika data sudah tersimpan di Supabase
+            const total = document.getElementById('grand-total').innerText;
+            
+            let message = `*Halo Admin KazuDev Store!*\n`;
+            message += `Saya ingin konfirmasi pembayaran pesanan:\n\n`;
+            
+            cart.forEach(item => {
+                message += `- *${item.name}* (x${item.quantity})\n`;
+            });
+            
+            message += `\n*Total Tagihan: ${total}*\n`;
+            message += `Metode: QRIS / Transfer\n\n`;
+            message += `Tolong segera dicek dan diproses ya, terima kasih!`;
+            
+            const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank'); // Buka WA di tab baru
+
+            // --- SETELAH KLIK WA, UBAH STATUS UI JADI PROCESSING ---
+            localStorage.setItem('ns_order_status', 'processing');
+            closePaymentModal();
+            checkOrderStatus(); // Render ulang tampilan UI
+        }
+
+        // --- THEME TOGGLE ---
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconEl = document.getElementById('theme-icon');
+            if (!iconEl) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html> 

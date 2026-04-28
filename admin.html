@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KazuDev Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="./dist/img/logo.png">
+    <script>
+        // Theme Logic
+        (function() {
+            const savedTheme = localStorage.getItem('ns_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        #admin-main-content { display: none; }
+        #auth-loader {
+            position: fixed;
+            inset: 0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .dark #auth-loader { background: #111827; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+
+    <div id="auth-loader">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+    </div>
+
+    <div id="admin-main-content">
+        <nav class="bg-slate-800 text-white shadow-lg p-4">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="text-blue-400"></i>
+                    <span class="font-bold text-lg tracking-widest uppercase">Admin Panel</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-slate-700 transition" id="theme-toggle">
+                        <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i>
+                    </button>
+                    <a href="index" class="text-sm hover:text-blue-400 transition hidden sm:block">Lihat Toko</a>
+                    <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                        <i data-lucide="log-out" class="h-4 w-4"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 sticky top-8 border dark:border-gray-700">
+                    <h2 id="form-title" class="text-xl font-bold mb-6 flex items-center gap-2 dark:text-white">
+                        <i data-lucide="plus-circle" class="text-blue-600" id="form-icon"></i> <span id="form-title-text">Tambah Produk</span>
+                    </h2>
+                    
+                    <form id="product-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Nama Produk</label>
+                            <input type="text" id="name" required class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Harga (IDR)</label>
+                            <input type="number" id="price" required class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Deskripsi</label>
+                            <textarea id="description" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        
+                        <div class="pt-2 border-t dark:border-gray-700">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Gambar Produk (Isi/Detail)</label>
+                            <input type="file" id="image_file" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-400">
+                            <p id="main-img-hint" class="text-[10px] text-gray-400 mt-1">*Wajib diisi untuk produk baru.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Gambar Katalog (Kotak/Thumbnail)</label>
+                            <input type="file" id="catalog_image_file" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 dark:file:bg-green-900/30 file:text-green-700 dark:file:text-green-400">
+                            <p class="text-[10px] text-gray-400 mt-1">*Opsional. Kosongkan jika ingin pakai gambar yang sama dengan di atas.</p>
+                        </div>
+
+                        <div class="flex gap-2 mt-4">
+                            <button type="submit" id="btn-submit" class="flex-grow py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg">
+                                <i data-lucide="upload-cloud" class="h-4 w-4" id="btn-icon"></i> <span id="btn-text">Simpan Produk</span>
+                            </button>
+                            <button type="button" id="btn-cancel" onclick="cancelEdit()" class="hidden px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-bold transition items-center justify-center shadow-lg">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border dark:border-gray-700">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 dark:text-white">
+                        <i data-lucide="package" class="text-blue-600"></i> Inventaris Produk
+                    </h2>
+                    <div id="product-list" class="space-y-4">
+                        <p class="text-center text-gray-400 py-10">Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ctkyucpekmzknysvtrqw.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0a3l1Y3Bla216a255c3Z0cnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzQ4NzcsImV4cCI6MjA5MjYxMDg3N30.Yhp9i4Mz1AW4cMuWd21c5TABsFHZWfsZYQcnF-X0Pkg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // CONFIG: Admin Email
+        const ADMIN_EMAIL = 'nouvaprasetyaa@gmail.com';
+
+        // STATE MANAGEMENTS
+        let currentProducts = []; 
+        let editingProductId = null; 
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await checkAuth(); 
+            updateThemeIcon();
+        });
+
+        // 1. FUNGSI PROTEKSI
+        async function checkAuth() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (error || !session) {
+                window.location.href = 'loginadmin';
+                return;
+            }
+
+            if (session.user.email !== ADMIN_EMAIL) {
+                alert("Akses Ditolak! Anda bukan Administrator.");
+                await supabaseClient.auth.signOut();
+                window.location.href = 'loginadmin';
+                return;
+            }
+
+            document.getElementById('auth-loader').style.display = 'none';
+            document.getElementById('admin-main-content').style.display = 'block';
+            loadAdminProducts();
+        }
+
+        // 2. LOAD DAFTAR PRODUK
+        async function loadAdminProducts() {
+            const listEl = document.getElementById('product-list');
+            const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+
+            if (error) {
+                listEl.innerHTML = `<p class="text-red-500">Gagal memuat data: ${error.message}</p>`;
+                return;
+            }
+
+            currentProducts = data; 
+
+            if (data.length === 0) {
+                listEl.innerHTML = `<p class="text-center text-gray-400 py-10">Belum ada produk.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = data.map(p => {
+                const displayImg = p.catalog_image_url ? p.catalog_image_url : p.image_url;
+                
+                return `
+                <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border dark:border-gray-600 transition hover:shadow-md">
+                    <img src="${displayImg}" class="w-12 h-12 object-cover rounded-lg bg-gray-200">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-sm dark:text-white">${p.name}</h4>
+                        <p class="text-xs text-blue-500 font-semibold">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+                    </div>
+                    
+                    <button onclick="startEdit('${p.id}')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition" title="Edit Produk">
+                        <i data-lucide="edit" class="h-5 w-5"></i>
+                    </button>
+
+                    <button onclick="deleteProduct('${p.id}')" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition" title="Hapus Produk">
+                        <i data-lucide="trash-2" class="h-5 w-5"></i>
+                    </button>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // 3. FUNGSI MEMULAI EDIT
+        function startEdit(id) {
+            // FIX: Gunakan String() agar tipe data angka/teks dari Supabase tidak bentrok
+            const product = currentProducts.find(p => String(p.id) === String(id));
+            if (!product) {
+                alert("Gagal memuat data produk untuk diedit!");
+                return;
+            }
+
+            editingProductId = product.id;
+
+            document.getElementById('name').value = product.name;
+            document.getElementById('price').value = product.price;
+            document.getElementById('description').value = product.description || '';
+            
+            document.getElementById('form-title-text').innerText = "Edit Produk";
+            document.getElementById('form-icon').setAttribute('data-lucide', 'edit');
+            document.getElementById('btn-text').innerText = "Update Produk";
+            document.getElementById('btn-icon').setAttribute('data-lucide', 'save');
+            
+            document.getElementById('btn-cancel').style.display = 'flex'; 
+            document.getElementById('main-img-hint').innerText = "*Biarkan kosong jika tidak ingin mengubah gambar.";
+
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 4. FUNGSI BATAL EDIT
+        function cancelEdit() {
+            editingProductId = null; 
+            document.getElementById('product-form').reset(); 
+
+            document.getElementById('form-title-text').innerText = "Tambah Produk";
+            document.getElementById('form-icon').setAttribute('data-lucide', 'plus-circle');
+            document.getElementById('btn-text').innerText = "Simpan Produk";
+            document.getElementById('btn-icon').setAttribute('data-lucide', 'upload-cloud');
+            
+            document.getElementById('btn-cancel').style.display = 'none'; 
+            document.getElementById('main-img-hint').innerText = "*Wajib diisi untuk produk baru.";
+
+            lucide.createIcons();
+        }
+
+        // 5. HANDLE SUBMIT FORM (UPLOAD & INSERT/UPDATE)
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            const originalTextHTML = btn.innerHTML;
+            
+            const mainFile = document.getElementById('image_file').files[0];
+            const catalogFile = document.getElementById('catalog_image_file').files[0];
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+            const description = document.getElementById('description').value;
+
+            if (!editingProductId && !mainFile) {
+                alert("Gambar Produk (Utama) wajib diunggah untuk produk baru!");
+                return;
+            }
+
+            btn.disabled = true;
+            document.getElementById('btn-text').innerText = "Memproses...";
+
+            try {
+                let mainPublicUrl = null;
+                let catalogPublicUrl = null;
+
+                if (editingProductId) {
+                    const existingProduct = currentProducts.find(p => p.id === editingProductId);
+                    mainPublicUrl = existingProduct.image_url;
+                    catalogPublicUrl = existingProduct.catalog_image_url;
+                }
+
+                if (mainFile) {
+                    const mainExt = mainFile.name.split('.').pop();
+                    const mainFileName = `main_${Date.now()}.${mainExt}`;
+                    const { error: mainUploadError } = await supabaseClient.storage
+                        .from('product-images')
+                        .upload(mainFileName, mainFile);
+                    if (mainUploadError) throw mainUploadError;
+                    
+                    const { data: mainData } = supabaseClient.storage.from('product-images').getPublicUrl(mainFileName);
+                    mainPublicUrl = mainData.publicUrl;
+                }
+
+                if (catalogFile) {
+                    const catExt = catalogFile.name.split('.').pop();
+                    const catFileName = `catalog_${Date.now()}.${catExt}`;
+                    const { error: catUploadError } = await supabaseClient.storage
+                        .from('product-images')
+                        .upload(catFileName, catalogFile);
+                    if (catUploadError) throw catUploadError;
+                    
+                    const { data: catData } = supabaseClient.storage.from('product-images').getPublicUrl(catFileName);
+                    catalogPublicUrl = catData.publicUrl;
+                }
+
+                if (editingProductId) {
+                    const { error: updateError } = await supabaseClient.from('products').update({ 
+                        name, price, description, image_url: mainPublicUrl, catalog_image_url: catalogPublicUrl 
+                    }).eq('id', editingProductId);
+
+                    if (updateError) {
+                        console.error("Detail Error Supabase:", updateError);
+                        throw new Error(`Gagal update: ${updateError.message || updateError.details}`);
+                    }
+                    alert('Produk berhasil diperbarui!');
+                } else {
+                    const { error: insertError } = await supabaseClient.from('products').insert([
+                        { name, price, description, image_url: mainPublicUrl, catalog_image_url: catalogPublicUrl }
+                    ]);
+
+                    if (insertError) {
+                        console.error("Detail Error Supabase:", insertError);
+                        throw new Error(`Gagal menyimpan: ${insertError.message || insertError.details}`);
+                    }
+                    alert('Produk baru berhasil ditambahkan!');
+                }
+
+                cancelEdit();
+                loadAdminProducts();
+
+            } catch (err) {
+                alert('Terjadi Kesalahan:\n' + err.message);
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalTextHTML;
+                lucide.createIcons();
+            }
+        });
+
+        // 6. DELETE PRODUCT
+        async function deleteProduct(id) {
+            if (!confirm('Yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.')) return;
+
+            try {
+                const { error } = await supabaseClient.from('products').delete().eq('id', id);
+                if (error) throw error;
+                
+                if (editingProductId === id) cancelEdit();
+                
+                loadAdminProducts();
+            } catch (err) {
+                alert('Gagal menghapus: ' + err.message);
+            }
+        }
+
+        // 7. THEME & LOGOUT
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'loginadmin';
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('ns_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconEl = document.getElementById('theme-icon');
+            if (!iconEl) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

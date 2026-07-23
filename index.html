@@ -52,11 +52,13 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #334155; }
 
+        /* PERBAIKAN TOTAL BANNER MOBILE SUPAYA FULL SIZE & TIDAK TERPOTONG */
         @media (max-width: 640px) {
             .banner-container { 
-                height: 200px !important;
-                clip-path: polygon(0 0, 100% 0, 100% 88%, 0% 100%);
-                margin-bottom: -15px;
+                height: auto !important;
+                aspect-ratio: 16 / 6.8 !important;
+                clip-path: none !important;
+                margin-bottom: 0px !important;
             }
         }
     </style>
@@ -106,21 +108,21 @@
         <div id="view-home" class="view-section active animate-fade-in pb-16">
             
             <!-- CAROUSEL BANNER -->
-            <div class="banner-container relative w-full h-[200px] sm:h-[450px] lg:h-[550px] bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+            <div class="banner-container relative w-full h-[220px] sm:h-[450px] lg:h-[550px] bg-gray-900 overflow-hidden group">
                 <div id="carousel-inner" class="relative h-full w-full"></div>
                 
-                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/30 hover:bg-black/50 text-white z-20 transition-all opacity-70 sm:opacity-0 sm:group-hover:opacity-100">
-                    <i data-lucide="chevron-left" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 text-white z-20 transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100">
+                    <i data-lucide="chevron-left" class="h-4 w-4 sm:h-6 sm:w-6"></i>
                 </button>
-                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/30 hover:bg-black/50 text-white z-20 transition-all opacity-70 sm:opacity-0 sm:group-hover:opacity-100">
-                    <i data-lucide="chevron-right" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 text-white z-20 transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100">
+                    <i data-lucide="chevron-right" class="h-4 w-4 sm:h-6 sm:w-6"></i>
                 </button>
                 
-                <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-20" id="carousel-dots"></div>
+                <div class="absolute bottom-2.5 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-20" id="carousel-dots"></div>
             </div>
 
             <!-- KATALOG PRODUK SECTION -->
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-12">
                 <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-6 sm:mb-8 gap-3 sm:gap-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight">Katalog Produk</h2>
@@ -178,7 +180,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 2: JASA SERVICE & IT SOLUTION (DIBAWAH WEBSITE CUSTOM) -->
+                <!-- CARD 2: JASA SERVICE & IT SOLUTION -->
                 <div class="relative bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 dark:from-gray-800 dark:via-gray-900 dark:to-slate-900 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl p-6 sm:p-12 text-white border border-slate-700/50">
                     <div class="absolute -right-8 -bottom-8 text-white/5 pointer-events-none transform -rotate-12">
                         <i data-lucide="wrench" class="w-44 h-44 sm:w-80 sm:h-80"></i>
@@ -285,7 +287,9 @@
                 const imgSource = isMobile ? item.mobile : item.pc;
                 const slide = document.createElement('div');
                 slide.className = `carousel-slide absolute inset-0 w-full h-full flex items-center justify-center transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`;
-                slide.innerHTML = `<img src="${imgSource}" class="w-full h-full object-cover object-center"><div class="absolute inset-0 bg-black/10"></div>`;
+                
+                // MENGGUNAKAN object-contain PADA MOBILE AGAR KANAN KIRI TIDAK KEPOTONG SAMA SEKALI
+                slide.innerHTML = `<img src="${imgSource}" class="w-full h-full object-contain sm:object-cover object-center"><div class="absolute inset-0 bg-black/10 pointer-events-none"></div>`;
                 container.appendChild(slide);
 
                 const dot = document.createElement('button');

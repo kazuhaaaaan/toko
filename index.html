@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="overflow-x-hidden">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,41 +47,56 @@
         .view-section.active { display: block; }
         .carousel-slide { transition: opacity 1s ease-in-out; }
         
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #334155; }
 
         @media (max-width: 640px) {
             .banner-container { 
-                height: 220px !important;
-                clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
-                margin-bottom: -20px;
+                height: 200px !important;
+                clip-path: polygon(0 0, 100% 0, 100% 88%, 0% 100%);
+                margin-bottom: -15px;
             }
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col overflow-x-hidden">
 
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md border-b dark:border-gray-700 h-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-            <div class="flex justify-between items-center h-full">
-                <div class="flex items-center cursor-pointer group" onclick="navigate('home')">
-                    <div class="bg-blue-600 p-1.5 rounded-lg mr-2 transition-transform group-hover:scale-110">
-                        <i data-lucide="shopping-bag" class="h-6 w-6 text-white"></i>
+    <!-- NAVBAR DENGAN FITUR AUTO HIDE/SHOW ON SCROLL -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md border-b dark:border-gray-700 h-16 transition-transform duration-300 ease-in-out">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-full">
+            <div class="flex justify-between items-center h-full gap-2">
+                
+                <!-- Logo & Brand Name -->
+                <div class="flex items-center cursor-pointer group shrink-0" onclick="navigate('home')">
+                    <div class="bg-blue-600 p-1.5 rounded-lg mr-2 transition-transform group-hover:scale-110 shrink-0">
+                        <i data-lucide="shopping-bag" class="h-5 w-5 sm:h-6 sm:w-6 text-white"></i>
                     </div>
-                    <span class="text-xl font-extrabold tracking-tight">KazuDev Store</span>
+                    <span class="text-sm sm:text-xl font-extrabold tracking-tight whitespace-nowrap">KazuDev Store</span>
                 </div>
 
-                <div class="flex items-center space-x-2">
-                    <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <!-- Right Nav Elements -->
+                <div class="flex items-center space-x-1 sm:space-x-3 shrink-0">
+                    <!-- Tombol Navigasi Layanan IT -->
+                    <a href="service.html" class="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-2 sm:px-3 py-1.5 rounded-xl transition shrink-0">
+                        <i data-lucide="wrench" class="h-4 w-4"></i>
+                        <span class="hidden sm:inline">Layanan IT</span>
+                    </a>
+
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition shrink-0">
                         <i data-lucide="moon" id="theme-icon" class="h-5 w-5"></i>
                     </button>
-                    <button onclick="goToCart()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+
+                    <!-- Cart Button -->
+                    <button onclick="goToCart()" class="relative p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition shrink-0">
                         <i data-lucide="shopping-cart" class="h-5 w-5"></i>
                         <span id="cart-badge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center hidden ring-2 ring-white dark:ring-gray-800">0</span>
                     </button>
-                    <div id="auth-section" class="flex items-center ml-1 border-l dark:border-gray-700 pl-3"></div>
+
+                    <!-- Auth Section -->
+                    <div id="auth-section" class="flex items-center ml-0.5 sm:ml-1 border-l dark:border-gray-700 pl-1.5 sm:pl-3 shrink-0"></div>
                 </div>
             </div>
         </div>
@@ -90,74 +105,125 @@
     <main class="flex-grow pt-16">
         <div id="view-home" class="view-section active animate-fade-in pb-16">
             
-            <div class="banner-container relative w-full h-[220px] sm:h-[450px] lg:h-[550px] bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+            <!-- CAROUSEL BANNER -->
+            <div class="banner-container relative w-full h-[200px] sm:h-[450px] lg:h-[550px] bg-gray-200 dark:bg-gray-800 overflow-hidden group">
                 <div id="carousel-inner" class="relative h-full w-full"></div>
                 
-                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white z-20 transition-all opacity-0 group-hover:opacity-100">
+                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/30 hover:bg-black/50 text-white z-20 transition-all opacity-70 sm:opacity-0 sm:group-hover:opacity-100">
                     <i data-lucide="chevron-left" class="h-5 w-5 sm:h-6 sm:w-6"></i>
                 </button>
-                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white z-20 transition-all opacity-0 group-hover:opacity-100">
+                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-black/30 hover:bg-black/50 text-white z-20 transition-all opacity-70 sm:opacity-0 sm:group-hover:opacity-100">
                     <i data-lucide="chevron-right" class="h-5 w-5 sm:h-6 sm:w-6"></i>
                 </button>
                 
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20" id="carousel-dots"></div>
+                <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-20" id="carousel-dots"></div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Katalog Produk</h2>
+            <!-- KATALOG PRODUK SECTION -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-6 sm:mb-8 gap-3 sm:gap-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight">Katalog Produk</h2>
+                        <div class="sm:hidden bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+                            <span class="text-xs font-bold text-blue-600 dark:text-blue-400" id="product-count-mobile">0 Produk</span>
+                        </div>
+                    </div>
                     
                     <div class="relative w-full sm:w-72 lg:w-96">
-                        <input type="text" id="search-input" placeholder="Cari produk..." onkeyup="searchProducts()" class="w-full pl-10 pr-4 py-2 border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition">
-                        <i data-lucide="search" class="absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                        <input type="text" id="search-input" placeholder="Cari produk..." onkeyup="searchProducts()" class="w-full pl-10 pr-4 py-2 text-sm border rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
                     </div>
 
-                    <div class="bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full border border-blue-100 dark:border-blue-800 whitespace-nowrap">
+                    <div class="hidden sm:block bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full border border-blue-100 dark:border-blue-800 whitespace-nowrap">
                         <span class="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400" id="product-count">Loading...</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8" id="products-grid"></div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-8" id="products-grid"></div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
-                <div class="relative bg-[#2d46b9] dark:bg-blue-900 rounded-[2rem] overflow-hidden shadow-2xl p-8 sm:p-14 text-center border dark:border-gray-700">
-                    
-                    <div class="absolute -right-10 -top-10 text-white/10 dark:text-white/5 pointer-events-none transform rotate-12">
-                        <i data-lucide="code-2" class="w-64 h-64"></i>
+            <!-- SECTION WEBSITE CUSTOM & LAYANAN IT (TERPISAH) -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14 sm:mt-20 space-y-8 sm:space-y-12">
+                
+                <!-- CARD 1: WEBSITE CUSTOM -->
+                <div class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl p-6 sm:p-12 text-white border border-blue-500/20">
+                    <div class="absolute -right-6 -top-6 text-white/10 pointer-events-none transform rotate-12">
+                        <i data-lucide="code-2" class="w-40 h-40 sm:w-72 sm:h-72"></i>
                     </div>
-                    <div class="absolute -left-10 -bottom-10 text-white/10 dark:text-white/5 pointer-events-none transform -rotate-12">
-                        <i data-lucide="monitor" class="w-48 h-48"></i>
+                    <div class="absolute -left-6 -bottom-6 text-white/10 pointer-events-none transform -rotate-12">
+                        <i data-lucide="layout" class="w-32 h-32 sm:w-56 sm:h-56"></i>
                     </div>
 
-                    <div class="relative z-10">
-                        <h2 class="text-3xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Butuh Website Custom?</h2>
-                        <p class="text-blue-100 dark:text-blue-200 text-sm sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-                            Kami juga melayani pembuatan website dari nol sesuai dengan keinginan dan kebutuhan spesifik bisnis Anda. Konsultasi sekarang, gratis!
-                        </p>
+                    <div class="relative z-10 max-w-3xl mx-auto text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-white/15 text-blue-100 backdrop-blur-md mb-3 border border-white/20">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i> Custom Web Development
+                        </span>
                         
-                        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                            <button onclick="window.open('https://wa.me/6285163725110', '_blank')" class="w-full sm:w-auto px-8 py-3.5 bg-white text-[#2d46b9] hover:bg-gray-50 rounded-xl font-bold text-base flex items-center justify-center transition-all shadow-xl hover:shadow-2xl active:scale-95">
-                                <i data-lucide="message-circle" class="h-5 w-5 mr-2"></i> Chat WhatsApp
+                        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 tracking-tight leading-tight">
+                            Butuh Website Custom & Profesional?
+                        </h2>
+                        <p class="text-blue-100/90 text-xs sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto">
+                            Kami melayani pembuatan website dari nol (Company Profile, Toko Online, Web App, Landing Page) dengan desain modern, responsif, dan SEO-friendly sesuai kebutuhan bisnis Anda.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+                            <button onclick="window.open('https://wa.me/6285163725110', '_blank')" class="w-full sm:w-auto px-7 py-3.5 bg-white text-blue-900 hover:bg-blue-50 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-xl hover:scale-105 active:scale-95 gap-2">
+                                <i data-lucide="message-circle" class="h-5 w-5 text-green-600"></i> Konsultasi Website (WA)
                             </button>
-                            <button onclick="window.location.href='mailto:nouvaprasetyaa@gmail.com'" class="w-full sm:w-auto px-8 py-3.5 bg-transparent border-2 border-blue-300 text-white hover:bg-blue-800 rounded-xl font-bold text-base flex items-center justify-center transition-all active:scale-95">
-                                <i data-lucide="mail" class="h-5 w-5 mr-2"></i> Kirim Email
+
+                            <button onclick="window.location.href='mailto:nouvaprasetyaa@gmail.com'" class="w-full sm:w-auto px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all backdrop-blur-md hover:scale-105 active:scale-95 gap-2">
+                                <i data-lucide="mail" class="h-5 w-5"></i> Kirim Brief Email
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- CARD 2: JASA SERVICE & IT SOLUTION (DIBAWAH WEBSITE CUSTOM) -->
+                <div class="relative bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 dark:from-gray-800 dark:via-gray-900 dark:to-slate-900 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl p-6 sm:p-12 text-white border border-slate-700/50">
+                    <div class="absolute -right-8 -bottom-8 text-white/5 pointer-events-none transform -rotate-12">
+                        <i data-lucide="wrench" class="w-44 h-44 sm:w-80 sm:h-80"></i>
+                    </div>
+                    <div class="absolute -left-6 -top-6 text-white/5 pointer-events-none transform rotate-45">
+                        <i data-lucide="cpu" class="w-32 h-32 sm:w-56 sm:h-56"></i>
+                    </div>
+
+                    <div class="relative z-10 max-w-3xl mx-auto text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 backdrop-blur-md mb-3 border border-sky-400/30">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-sky-400"></i> IT Support & Maintenance
+                        </span>
+
+                        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 tracking-tight leading-tight">
+                            Layanan IT & Service Perangkat
+                        </h2>
+                        <p class="text-slate-300 text-xs sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto">
+                            Solusi perbaikan hardware/software, maintenance sistem, perakitan PC, hingga konsultasi teknis untuk kebutuhan personal maupun operasional usaha Anda.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+                            <a href="service.html" class="w-full sm:w-auto px-7 py-3.5 bg-sky-500 hover:bg-sky-400 text-gray-950 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center transition-all shadow-lg shadow-sky-500/25 hover:scale-105 active:scale-95 gap-2">
+                                <i data-lucide="wrench" class="h-5 w-5"></i> Lihat Katalog Service IT
+                            </a>
+
+                            <button onclick="window.open('https://wa.me/6285163725110', '_blank')" class="w-full sm:w-auto px-6 py-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all hover:scale-105 active:scale-95 gap-2">
+                                <i data-lucide="message-square" class="h-5 w-5 text-sky-400"></i> Tanya Jasa Service
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
 
-        <div id="view-detail" class="view-section max-w-6xl mx-auto px-4 py-12">
-            <button onclick="navigate('home')" class="mb-8 flex items-center text-gray-500 hover:text-blue-600 font-bold transition">
-                <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i> Kembali
+        <div id="view-detail" class="view-section max-w-6xl mx-auto px-4 py-8 sm:py-12">
+            <button onclick="navigate('home')" class="mb-6 sm:mb-8 flex items-center text-gray-500 hover:text-blue-600 font-bold transition text-sm sm:text-base">
+                <i data-lucide="arrow-left" class="mr-2 h-4 w-4 sm:h-5 sm:w-5"></i> Kembali
             </button>
             <div id="product-detail-content"></div>
         </div>
     </main>
 
-    <footer class="py-10 text-center text-gray-500 border-t dark:border-gray-700 mt-10">
+    <footer class="py-8 sm:py-10 text-center text-gray-500 border-t dark:border-gray-700 mt-10">
         <p class="text-xs sm:text-sm font-medium uppercase tracking-widest">&copy; 2026 Kazu Store</p>
     </footer>
 
@@ -171,7 +237,8 @@
 
         const carouselData = [
             { pc: './dist/img/banner.png', mobile: './dist/img/banner.png', title: 'Technology Service' },
-            { pc: './dist/img/banner2.png', mobile: './dist/img/banner2.png', title: 'High Quality Products' }
+            { pc: './dist/img/banner2.png', mobile: './dist/img/banner2.png', title: 'High Quality Products' },
+            { pc: './dist/img/banner3.png', mobile: './dist/img/banner3.jpg', title: 'Custom Solutions' }
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -183,6 +250,25 @@
             checkUserSession();
             setInterval(nextSlide, 5000);
             window.addEventListener('resize', initCarousel);
+        });
+
+        // --- LOGIC AUTO HIDE / SHOW NAVBAR ON SCROLL ---
+        let lastScrollTop = 0;
+        const navbar = document.getElementById('navbar');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (currentScroll > 60) {
+                if (currentScroll > lastScrollTop) {
+                    navbar.classList.add('-translate-y-full');
+                } else {
+                    navbar.classList.remove('-translate-y-full');
+                }
+            } else {
+                navbar.classList.remove('-translate-y-full');
+            }
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
         });
 
         // --- CAROUSEL LOGIC ---
@@ -203,7 +289,7 @@
                 container.appendChild(slide);
 
                 const dot = document.createElement('button');
-                dot.className = `h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? 'bg-white w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
+                dot.className = `h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? 'bg-white w-6 sm:w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
                 dot.onclick = () => showSlide(index);
                 dotsContainer.appendChild(dot);
             });
@@ -216,7 +302,7 @@
             currentSlide = (index + slides.length) % slides.length;
             slides.forEach((s, i) => s.style.opacity = (i === currentSlide) ? '1' : '0');
             dots.forEach((d, i) => {
-                d.className = `h-1.5 rounded-full transition-all duration-500 ${i === currentSlide ? 'bg-white w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
+                d.className = `h-1.5 rounded-full transition-all duration-500 ${i === currentSlide ? 'bg-white w-6 sm:w-8 shadow-md' : 'bg-white/30 w-1.5'}`;
             });
         }
 
@@ -229,34 +315,41 @@
                 const { data, error } = await supabaseClient.from('products').select('*');
                 if (data) {
                     allProducts = data;
-                    renderProducts(allProducts); // Pisahkan logika render agar bisa dipakai search
+                    renderProducts(allProducts);
                 }
             } catch (e) { console.error(e); }
         }
 
         function renderProducts(productsToRender) {
             const grid = document.getElementById('products-grid');
-            document.getElementById('product-count').innerText = `${productsToRender.length} Produk`;
+            const countText = `${productsToRender.length} Produk`;
+            
+            if (document.getElementById('product-count')) {
+                document.getElementById('product-count').innerText = countText;
+            }
+            if (document.getElementById('product-count-mobile')) {
+                document.getElementById('product-count-mobile').innerText = countText;
+            }
             
             if (productsToRender.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">Produk tidak ditemukan.</div>`;
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400 text-sm">Produk tidak ditemukan.</div>`;
                 return;
             }
 
             grid.innerHTML = productsToRender.map(p => {
                 const displayImage = p.catalog_image_url ? p.catalog_image_url : p.image_url;
                 return `
-                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border dark:border-gray-700 cursor-pointer hover:shadow-md transition group flex flex-col" onclick="viewDetail('${p.id}')">
+                <div class="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border dark:border-gray-700 cursor-pointer hover:shadow-md transition group flex flex-col" onclick="viewDetail('${p.id}')">
                     <div class="overflow-hidden aspect-square">
                         <img src="${displayImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 bg-gray-100 dark:bg-gray-700">
                     </div>
-                    <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="font-bold text-sm truncate uppercase tracking-tighter dark:text-white">${p.name}</h3>
-                        <p class="text-blue-600 font-black mt-1 mb-3">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+                    <div class="p-3 sm:p-4 flex flex-col flex-grow">
+                        <h3 class="font-bold text-xs sm:text-sm truncate uppercase tracking-tighter dark:text-white">${p.name}</h3>
+                        <p class="text-blue-600 font-black text-xs sm:text-base mt-1 mb-2 sm:mb-3">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
                         
                         <div class="mt-auto">
-                            <button class="w-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold py-2 rounded-xl text-sm group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center gap-2">
-                                <i data-lucide="eye" class="h-4 w-4"></i> Lihat Produk
+                            <button class="w-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="eye" class="h-3.5 w-3.5 sm:h-4 sm:w-4"></i> Lihat
                             </button>
                         </div>
                     </div>
@@ -277,14 +370,14 @@
             if (!p) return;
 
             document.getElementById('product-detail-content').innerHTML = `
-                <div class="grid md:grid-cols-2 gap-10">
-                    <img src="${p.image_url}" class="rounded-3xl w-full shadow-2xl border dark:border-gray-700">
+                <div class="grid md:grid-cols-2 gap-6 sm:gap-10">
+                    <img src="${p.image_url}" class="rounded-2xl sm:rounded-3xl w-full shadow-xl sm:shadow-2xl border dark:border-gray-700">
                     <div class="flex flex-col justify-center">
-                        <h1 class="text-4xl font-black mb-2 uppercase tracking-tighter dark:text-white">${p.name}</h1>
-                        <p class="text-2xl text-blue-600 font-black mb-4">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
-                        <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">${p.description || 'Tidak ada deskripsi produk.'}</p>
-                        <button onclick="addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
-                            <i data-lucide="shopping-cart" class="h-5 w-5"></i> Tambah ke Keranjang
+                        <h1 class="text-2xl sm:text-4xl font-black mb-1 sm:mb-2 uppercase tracking-tighter dark:text-white">${p.name}</h1>
+                        <p class="text-xl sm:text-2xl text-blue-600 font-black mb-3 sm:mb-4">Rp ${Number(p.price).toLocaleString('id-ID')}</p>
+                        <p class="text-xs sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 leading-relaxed">${p.description || 'Tidak ada deskripsi produk.'}</p>
+                        <button onclick="addToCart('${p.id}')" class="w-full bg-blue-600 text-white py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-bold hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 text-sm sm:text-base">
+                            <i data-lucide="shopping-cart" class="h-4 w-4 sm:h-5 sm:w-5"></i> Tambah ke Keranjang
                         </button>
                     </div>
                 </div>
@@ -302,7 +395,6 @@
         async function goToCart() {
             const isLoggedIn = await checkIsLoggedIn();
             if (isLoggedIn) {
-                // Asumsi laman keranjang kamu menggunakan route "keranjang"
                 window.location.href = 'keranjang'; 
             } else {
                 alert('Silakan login terlebih dahulu untuk membuka keranjang.');
@@ -380,8 +472,8 @@
             const authSection = document.getElementById('auth-section');
             if(authSection) {
                 authSection.innerHTML = user ? 
-                    `<button onclick="window.location.href='user'" title="Ke Halaman Profil" class="w-8 h-8 bg-blue-600 hover:bg-blue-700 transition rounded-full flex items-center justify-center text-white text-xs font-bold uppercase shadow-sm cursor-pointer">${user.email[0]}</button>` :
-                    `<button onclick="window.location.href='login.html'" class="text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition">LOGIN</button>`;
+                    `<button onclick="window.location.href='user'" title="Ke Halaman Profil" class="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 hover:bg-blue-700 transition rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold uppercase shadow-sm cursor-pointer">${user.email[0]}</button>` :
+                    `<button onclick="window.location.href='login.html'" class="text-[11px] sm:text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 sm:px-3 py-1.5 rounded-lg transition">LOGIN</button>`;
             }
         }
     </script>
